@@ -25,15 +25,17 @@ if test -f "$DCI_FILE"; then
     echo "$DCI_FILE exist. Proceeding..."
 else
     echo "$DCI_FILE is missing. Exiting..."
-    set -e
+    exit 1
 fi
 
 # Check if dbc_certs.tar exists
 if test -f "$CERTS_FILE"; then
     echo "$CERTS_FILE exist. Proceeding..."
 else
-    echo "$CERTS_FILE is missing. Exiting..."
-    set -e
+    echo "$CERTS_FILE is missing. Downloading..."
+    cd $DBC_DIR
+    wget https://objectstorage.us-phoenix-1.oraclecloud.com/p/QsLX1mx9A-vnjjohcC7TIK6aTDFXVKr0Uogc2DAN-Rd7j6AagsmMaQ3D3Ti4a9yU/n/adwcdemo/b/CERTS/o/dbc_certs.tar
+    
 fi
 
 # Check if dbc_aces.sql exists
@@ -41,15 +43,15 @@ if test -f "$ACES_FILE"; then
     echo "$ACES_FILE exist. Proceeding..."
 else
     cd $DBC_DIR
-    echo "$ACES_FILE is missing. Downloading..."
-    wget https://raw.githubusercontent.com/wsanders00/DBMS_CLOUD/main/assets/dbc_aces.sql
+    echo "$ACES_FILE is missing. Exiting..."
+    exit 1
 fi
 # Check if verify.sql exists
 if test -f "$VERIFY_FILE"; then
     echo "$VERIFY_FILE exist. Proceeding..."
 else
     echo "$VERIFY_FILE is missing. Exiting..."
-    set -e
+    exit 1
 fi
 
 # Make wallet directory
