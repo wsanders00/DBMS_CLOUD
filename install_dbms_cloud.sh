@@ -35,7 +35,6 @@ else
     echo "$CERTS_FILE is missing. Downloading..."
     cd $DBC_DIR
     wget https://objectstorage.us-phoenix-1.oraclecloud.com/p/QsLX1mx9A-vnjjohcC7TIK6aTDFXVKr0Uogc2DAN-Rd7j6AagsmMaQ3D3Ti4a9yU/n/adwcdemo/b/CERTS/o/dbc_certs.tar
-    
 fi
 
 # Check if dbc_aces.sql exists
