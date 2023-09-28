@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # run-ords.sh: configure and start ORDS listener
-#
+# test
 
 WALLET_PWD=PASSWORD_HERE
 DB_PASS=PASSWORD_HERE
