@@ -99,17 +99,11 @@ else
         (DIRECTORY=/home/oracle/dbc/commonstore/wallets/ssl)))" >> $ORACLE_HOME/network/admin/sqlnet.ora
 fi
 
+echo "Done, please execute $ACES_FILE"
+echo "Run script in the root container as:"
+echo "conn / as sysdba
+@@/home/oracle/dbc/dbc_aces.sql"
 
-# needs work....
-
-
-
-
-
-#echo "Calling dbc_aces.sql"
-
-#sqlplus -s /nolog << EOF
-#CONNECT sys as sysdba/$DB_PASS;
-#@@/home/oracle/dbc/dbc_aces.sql
-#exit;
-#EOF
+echo "Then run $VERIFY_FILE as:"
+echo "conn / as sysdba
+@/home/oracle/dbc/verify.sql"
