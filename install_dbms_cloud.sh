@@ -24,18 +24,16 @@ fi
 if test -f "$DCI_FILE"; then
     echo "$DCI_FILE exist. Proceeding..."
 else
-    cd $DBC_DIR
-    echo "$DCI_FILE is missing. downloading..."
-    wget https://raw.githubusercontent.com/wsanders00/DBMS_CLOUD/main/assets/dbms_cloud_install.sql
+    echo "$DCI_FILE is missing. Exiting..."
+    set -e
 fi
 
 # Check if dbc_certs.tar exists
 if test -f "$CERTS_FILE"; then
     echo "$CERTS_FILE exist. Proceeding..."
 else
-    cd $DBC_DIR
-    echo "$CERTS_FILE is missing. downloading..."
-    wget https://objectstorage.us-phoenix-1.oraclecloud.com/p/QsLX1mx9A-vnjjohcC7TIK6aTDFXVKr0Uogc2DAN-Rd7j6AagsmMaQ3D3Ti4a9yU/n/adwcdemo/b/CERTS/o/dbc_certs.tar
+    echo "$CERTS_FILE is missing. Exiting..."
+    set -e
 fi
 
 # Check if dbc_aces.sql exists
@@ -43,16 +41,15 @@ if test -f "$ACES_FILE"; then
     echo "$ACES_FILE exist. Proceeding..."
 else
     cd $DBC_DIR
-    echo "$ACES_FILE is missing. downloading..."
+    echo "$ACES_FILE is missing. Downloading..."
     wget https://raw.githubusercontent.com/wsanders00/DBMS_CLOUD/main/assets/dbc_aces.sql
 fi
 # Check if verify.sql exists
 if test -f "$VERIFY_FILE"; then
     echo "$VERIFY_FILE exist. Proceeding..."
 else
-    cd $DBC_DIR
-    echo "$VERIFY_FILE is missing. downloading..."
-    wget https://raw.githubusercontent.com/wsanders00/DBMS_CLOUD/main/assets/verify.sql
+    echo "$VERIFY_FILE is missing. Exiting..."
+    set -e
 fi
 
 # Make wallet directory
@@ -99,6 +96,13 @@ else
         (SOURCE=(METHOD=FILE)(METHOD_DATA=
         (DIRECTORY=/home/oracle/dbc/commonstore/wallets/ssl)))" >> $ORACLE_HOME/network/admin/sqlnet.ora
 fi
+
+
+# needs work....
+
+
+
+
 
 #echo "Calling dbc_aces.sql"
 
