@@ -1,29 +1,65 @@
 #!/usr/bin/env bash
 #
-# run-ords.sh: configure and start ORDS listener
-# test
+# install_dbms_cloud.sql - installs DBMS_CLOUD to 23c Oracle DB
 
+# Passwords needed for file - please update.
 WALLET_PWD=PASSWORD_HERE
 DB_PASS=PASSWORD_HERE
 
-
+# File locations
 DCI_FILE=/home/oracle/dbc/dbms_cloud_install.sql
 CERTS_FILE=/home/oracle/dbc/dbc_certs.tar
 ACES_FILE=/home/oracle/dbc/dbc_aces.sql
 VERIFY_FILE=/home/oracle/dbc/verify.sql
+DBC_DIR=/home/oracle/dbc/
 
-if test -f "$DCI_FILE" && test -f "$CERTS_FILE" && test -f "$ACES_FILE" && test -f "$VERIFY_FILE"; then
-    echo "All files exist. Proceeding..."
-else
-    echo "Ensure the following files exist:"
-    echo "$DCI_FILE"
-    echo "$CERTS_FILE"
-    echo "$ACES_FILE"
-    echo "$VERIFY_FILE"
+# Check and download needed files
+# Check if DBC directory exists
+if [ ! -d "$DBC_DIR" ]; then
+    echo "$DBC_DIR does not exist. Creating..."
+    mkdir -p $DBC_DIR
 fi
 
+# Check if dbms_cloud_install.sql exists
+if test -f "$DCI_FILE"; then
+    echo "$DCI_FILE exist. Proceeding..."
+else
+    cd $DBC_DIR
+    echo "$DCI_FILE is missing. downloading..."
+    wget https://raw.githubusercontent.com/wsanders00/DBMS_CLOUD/main/assets/dbms_cloud_install.sql
+fi
 
-mkdir -p /home/oracle/dbc/commonstore/wallets/ssl
+# Check if dbc_certs.tar exists
+if test -f "$CERTS_FILE"; then
+    echo "$CERTS_FILE exist. Proceeding..."
+else
+    cd $DBC_DIR
+    echo "$CERTS_FILE is missing. downloading..."
+    wget https://objectstorage.us-phoenix-1.oraclecloud.com/p/QsLX1mx9A-vnjjohcC7TIK6aTDFXVKr0Uogc2DAN-Rd7j6AagsmMaQ3D3Ti4a9yU/n/adwcdemo/b/CERTS/o/dbc_certs.tar
+fi
+
+# Check if dbc_aces.sql exists
+if test -f "$ACES_FILE"; then
+    echo "$ACES_FILE exist. Proceeding..."
+else
+    cd $DBC_DIR
+    echo "$ACES_FILE is missing. downloading..."
+    wget https://raw.githubusercontent.com/wsanders00/DBMS_CLOUD/main/assets/dbc_aces.sql
+fi
+# Check if verify.sql exists
+if test -f "$VERIFY_FILE"; then
+    echo "$VERIFY_FILE exist. Proceeding..."
+else
+    cd $DBC_DIR
+    echo "$VERIFY_FILE is missing. downloading..."
+    wget https://raw.githubusercontent.com/wsanders00/DBMS_CLOUD/main/assets/verify.sql
+fi
+
+# Make wallet directory
+if [ ! -d "/home/oracle/dbc/commonstore/wallets/ssl" ]; then
+    echo "/home/oracle/dbc/commonstore/wallets/ssl does not exist. Creating..."
+    mkdir -p /home/oracle/dbc/commonstore/wallets/ssl
+fi
 
 echo "Calling dbms_cloud_install.sql..."
 
@@ -35,11 +71,10 @@ $ORACLE_HOME/perl/bin/perl $ORACLE_HOME/rdbms/admin/catcon.pl \
   -l /home/oracle/dbc \
   dbms_cloud_install.sql
 
-echo "Extracting dbc_certs.tar"
+echo "Extracting $CERTS_FILE"
 
-mkdir -p /home/oracle/dbc/commonstore/wallets/ssl
 cd /home/oracle/dbc/commonstore/wallets/ssl
-tar -xvf /home/oracle/dbc/dbc_certs.tar
+tar -xvf $CERTS_FILE
 
 echo "Creating wallets..."
 
@@ -49,15 +84,26 @@ orapki wallet add -wallet . -trusted_cert -cert ./BaltimoreCyberTrust.cer -pwd $
 orapki wallet add -wallet . -trusted_cert -cert ./DigiCert.cer -pwd $WALLET_PWD
 
 echo "Updating sqlnet.ora"
-
-echo "WALLET_LOCATION=
+SQLNET_STRING="WALLET_LOCATION=
   (SOURCE=(METHOD=FILE)(METHOD_DATA=
-  (DIRECTORY=/home/oracle/dbc/commonstore/wallets/ssl)))" >> $ORACLE_HOME/network/admin/sqlnet.ora
+  (DIRECTORY=/home/oracle/dbc/commonstore/wallets/ssl)))"
 
-echo "Calling dbc_aces.sql"
+SQLNET_FILE=$ORACLE_HOME/network/admin/sqlnet.ora
 
-sqlplus -s /nolog << EOF
-CONNECT sys as sysdba/$DB_PASS;
-@@/home/oracle/dbc/dbc_aces.sql
-exit;
-EOF
+if grep -Fxq "$SQLNET_STRING" $SQLNET_FILE
+then
+    	echo "Wallet string already exists in $SQLNET_FILE"
+else
+    	echo "Wallet does not exist in $SQLNET_FILE. Adding..."
+      echo "WALLET_LOCATION=
+        (SOURCE=(METHOD=FILE)(METHOD_DATA=
+        (DIRECTORY=/home/oracle/dbc/commonstore/wallets/ssl)))" >> $ORACLE_HOME/network/admin/sqlnet.ora
+fi
+
+#echo "Calling dbc_aces.sql"
+
+#sqlplus -s /nolog << EOF
+#CONNECT sys as sysdba/$DB_PASS;
+#@@/home/oracle/dbc/dbc_aces.sql
+#exit;
+#EOF
